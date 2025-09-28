@@ -39,17 +39,26 @@ bool list_todos();
 bool init_yat(const char *target_dir)
 {
   struct StringBuilder sb = {0};
+  SB_APPEND_CSTR(&sb, target_dir);
   SB_APPEND_CSTR(&sb, "/yat-data.bin");
+  SB_APPEND_NULL(&sb);
 
+  // Check whether yat is already initialized or not.
   FILE *f = fopen(sb.items, "r");
-
   if (f) {
-    printf("yat-data.bin was found");
-  } else {
-    printf("yat-data.bin was not found...");
+    fclose(f);
+    printf("ERROR: %s already exists.\n", sb.items);
+    return false;
   }
 
+  // Create yat-data file in the specified directory.
+  f = fopen(sb.items, "w");
+  if (!f) {
+    printf("ERROR: could not create `%s`.", sb.items);
+    return false;
+  }
   fclose(f);
+
   return true;
 }
 
