@@ -6,7 +6,7 @@ struct StringBuilder {
   size_t capacity;
 };
 
-#define SB_APPEND_NULL(sb) DA_APPEND_MANY(sb, "", 1)
+#define SB_APPEND_NULL(sb) DA_APPEND(sb, '\0')
 
 #define SB_APPEND_SIZED(sb, buf, size) DA_APPEND_MANY(sb, buf, size)
 
