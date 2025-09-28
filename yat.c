@@ -6,7 +6,7 @@
 
 #include "sb.h"
 
-#define YAT_TODO_FILE "todos.yat"
+#define YAT_TODO_FILE "./todos.yat"
 
 struct Todo {
   int id;
@@ -31,36 +31,30 @@ void usage() {
 
 #define SHIFT(argc, argv) (assert((argc)>0), (argc)--, *(argv)++)
 
-// |-----|-----| Subcommand Functions |-----|-----|
+// ----------| Subcommand Functions |----------
 //
 // NOTE: All functions are expecting null-terminated string.
-bool init_yat(const char *target_dir);
+bool init_yat();
 bool add_todo(const char *name);
 bool close_todo(const char *id);
 bool delete_todo(const char *id);
 bool list_todos();
 
 
-bool init_yat(const char *target_dir)
+bool init_yat()
 {
-  struct StringBuilder sb = {0};
-  SB_APPEND_CSTR(&sb, target_dir);
-  DA_APPEND(&sb, '/');
-  SB_APPEND_CSTR(&sb, YAT_TODO_FILE);
-  SB_APPEND_NULL(&sb);
-
   // Check whether yat is already initialized or not.
-  FILE *f = fopen(sb.items, "r");
+  FILE *f = fopen(YAT_TODO_FILE, "r");
   if (f) {
     fclose(f);
-    printf("ERROR: %s already exists.\n", sb.items);
+    printf("ERROR: current directory is already initialized.\n");
     return false;
   }
 
   // Create yat-data file in the specified directory.
-  f = fopen(sb.items, "w");
+  f = fopen(YAT_TODO_FILE, "w");
   if (!f) {
-    printf("ERROR: could not create `%s`.", sb.items);
+    printf("ERROR: could not create `"YAT_TODO_FILE"`.\n");
     return false;
   }
   fclose(f);
@@ -100,14 +94,7 @@ int main(int argc, char **argv) {
   const char *command_name = SHIFT(argc, argv);
 
   if (strcmp(command_name, "init") == 0) {
-    if (argc == 0) {
-      usage();
-      printf("ERROR: `init` expected the target directory path.");
-      return -1;
-    }
-
-    const char *target_dir = SHIFT(argc, argv);
-    if (!init_yat(target_dir)) return -1;
+    if (!init_yat()) return -1;
 
   } else if (strcmp(command_name, "add") == 0) {
     if (argc == 0) {
