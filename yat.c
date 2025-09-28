@@ -6,6 +6,8 @@
 
 #include "sb.h"
 
+#define YAT_TODO_FILE "todos.yat"
+
 struct Todo {
   int id;
   char desc[256];
@@ -43,7 +45,8 @@ bool init_yat(const char *target_dir)
 {
   struct StringBuilder sb = {0};
   SB_APPEND_CSTR(&sb, target_dir);
-  SB_APPEND_CSTR(&sb, "/yat-data.bin");
+  DA_APPEND(&sb, '/');
+  SB_APPEND_CSTR(&sb, YAT_TODO_FILE);
   SB_APPEND_NULL(&sb);
 
   // Check whether yat is already initialized or not.
