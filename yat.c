@@ -14,14 +14,17 @@ struct Todo {
   struct Todo *child;
 };
 
-void usage(const char *program_name) {
-  printf("Usage: %s <SUBCOMMAND>\n", program_name);
+void usage() {
+  printf("Usage: yat <SUBCOMMAND>\n");
+  printf("\n");
   printf("SUBCOMMANDS:\n");
+  printf("\n");
   printf("    yat    <target-dir> - Initialize a specified directory with empty todos\n");
   printf("    add    <todo-name>  - Add todo\n");
   printf("    close  <todo-id>    - Close todo\n");
   printf("    delete <todo-id>    - Delete todo\n");
   printf("    list                - Show all todos\n");
+  printf("\n");
 }
 
 #define SHIFT(argc, argv) (assert((argc)>0), (argc)--, *(argv)++)
@@ -86,7 +89,7 @@ int main(int argc, char **argv) {
   const char *program_name = SHIFT(argc, argv);
 
   if (argc == 0) {
-    usage(program_name);
+    usage();
     printf("ERROR: no subcommand");
     return -1;
   }
@@ -95,7 +98,7 @@ int main(int argc, char **argv) {
 
   if (strcmp(command_name, "init") == 0) {
     if (argc == 0) {
-      usage(program_name);
+      usage();
       printf("ERROR: `init` expected the target directory path.");
       return -1;
     }
@@ -105,7 +108,7 @@ int main(int argc, char **argv) {
 
   } else if (strcmp(command_name, "add") == 0) {
     if (argc == 0) {
-      usage(program_name);
+      usage();
       printf("ERROR: `add` expected the name of todo.");
       return -1;
     }
@@ -115,7 +118,7 @@ int main(int argc, char **argv) {
 
   } else if (strcmp(command_name, "close") == 0) {
     if (argc == 0) {
-      usage(program_name);
+      usage();
       printf("ERROR: `close` expected the name of id.");
       return -1;
     }
@@ -125,7 +128,7 @@ int main(int argc, char **argv) {
 
   } else if (strcmp(command_name, "delete") == 0) {
     if (argc == 0) {
-      usage(program_name);
+      usage();
       printf("ERROR: `delete` expected the name of id.");
       return -1;
     }
@@ -136,7 +139,7 @@ int main(int argc, char **argv) {
   } else if (strcmp(command_name, "list") == 0) {
     if (!list_todos()) return -1;
   } else {
-    usage(program_name);
+    usage();
     printf("ERROR: invalid subcommand\n");
   }
 }
