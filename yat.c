@@ -31,6 +31,34 @@ void usage() {
 
 #define SHIFT(argc, argv) (assert((argc)>0), (argc)--, *(argv)++)
 
+// ----------| Core Functions |----------
+
+bool read_entire_file(const char *filepath, struct StringBuilder *sb);
+bool parse_todos(struct Todo *todos);
+
+bool read_entire_file(const char *filepath, struct StringBuilder *sb)
+{
+  FILE *f = fopen(filepath, "r");
+  if (!f) {
+    printf("ERROR: Could not open file : %s\n", filepath);
+    return false;
+  }
+  
+  fseek(f, 0, SEEK_END);
+  int m = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  DA_RESERVE(sb, m);
+
+  sb->count = fread(sb->items, sizeof(char), m, f);
+
+  fclose(f);
+
+  SB_APPEND_NULL(sb);
+
+  return true;
+}
+
 // ----------| Subcommand Functions |----------
 //
 // NOTE: All functions are expecting null-terminated string.
@@ -79,6 +107,9 @@ bool delete_todo(const char *id)
 
 bool list_todos()
 {
+  struct StringBuilder sb;
+  if (!read_entire_file(YAT_TODO_FILE, &sb)) { return false; }
+  printf("%s\n", sb.items);
   return true;
 }
 

@@ -6,6 +6,17 @@
 #define DA_REALLOC realloc
 #define DA_ASSERT assert
 
+#define DA_RESERVE(da, target_capacity)                         \
+    do {                                                        \
+      if ((da)->capacity == 0) {                                \
+        (da)->capacity = DA_INIT_CAPACITY;                      \
+      }                                                         \
+      while ((target_capacity) < (da)->capacity) {              \
+        (da)->capacity *= 2;                                    \
+      }                                                         \
+      (da)->items = DA_REALLOC((da)->items, (da)->capacity);    \
+    } while (0)
+
 #define DA_APPEND(da, item)                                     \
   do {                                                          \
     if ((da)->capacity == 0) {                                  \
@@ -23,10 +34,10 @@
 
 #define DA_APPEND_MANY(da, elems, items_count)                                          \
   do {                                                                                  \
+    if ((da)->capacity == 0) {                                                          \
+      (da)->capacity = DA_INIT_CAPACITY;                                                \
+    }                                                                                   \
     if ((items_count) > (da)->capacity) {                                               \
-      if ((da)->capacity == 0) {                                                        \
-        (da)->capacity = DA_INIT_CAPACITY;                                              \
-      }                                                                                 \
       while ((items_count) > (da)->capacity) {                                          \
         (da)->capacity *= 2;                                                            \
       }                                                                                 \
