@@ -17,19 +17,19 @@
       (da)->items = DA_REALLOC((da)->items, (da)->capacity);    \
     } while (0)
 
-#define DA_APPEND(da, item)                                     \
-  do {                                                          \
-    if ((da)->capacity == 0) {                                  \
-      (da)->capacity = DA_INIT_CAPACITY;                        \
-      (da)->count = 0;                                          \
-      (da)->items = DA_MALLOC(DA_INIT_CAPACITY);                \
-      if (!(da)->items) DA_ASSERT(false && "buy more RAM lol"); \
-    } else if ((da)->capacity == (da)->count) {                 \
-      (da)->capacity = (da)->capacity * 2;                      \
-      (da)->items = DA_REALLOC((da)->items, (da)->capacity);    \
-    }                                                           \
-    (da)->items[(da)->count] = item;                            \
-    (da)->count++;                                              \
+#define DA_APPEND(da, item)                                             \
+  do {                                                                  \
+    if ((da)->capacity == 0) {                                          \
+      (da)->capacity = DA_INIT_CAPACITY;                                \
+      (da)->count = 0;                                                  \
+      (da)->items = DA_MALLOC(DA_INIT_CAPACITY * sizeof(*(da)->items)); \
+      if (!(da)->items) DA_ASSERT(false && "buy more RAM lol");         \
+    } else if ((da)->capacity == (da)->count) {                         \
+      (da)->capacity = (da)->capacity * 2;                              \
+      (da)->items = DA_REALLOC((da)->items, (da)->capacity);            \
+    }                                                                   \
+    (da)->items[(da)->count] = item;                                    \
+    (da)->count++;                                                      \
   } while (0)
 
 #define DA_APPEND_MANY(da, elems, items_count)                                          \
