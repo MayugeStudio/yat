@@ -7,16 +7,23 @@
 #include "sb.h"
 
 #define YAT_TODO_FILE "./todos.yat"
+#define DESC_CAPACITY 256
+
 
 struct Todo {
   int id;
-  char desc[256];
+  char desc[DESC_CAPACITY];
   int done;
-
-  struct Todo *child;
 };
 
-void usage() {
+struct Todos {
+  struct Todo *items;
+  size_t count;
+  size_t capacity;
+};
+
+void usage()
+{
   printf("Usage: yat <SUBCOMMAND>\n");
   printf("\n");
   printf("SUBCOMMANDS:\n");
@@ -40,21 +47,122 @@ bool read_entire_file(const char *filepath, struct StringBuilder *sb)
 {
   FILE *f = fopen(filepath, "r");
   if (!f) {
-    printf("ERROR: Could not open file : %s\n", filepath);
+    printf("ERROR: Could not open file: %s\n", filepath);
     return false;
   }
   
   fseek(f, 0, SEEK_END);
-  int m = ftell(f);
+  long m = ftell(f);
   fseek(f, 0, SEEK_SET);
 
   DA_RESERVE(sb, m);
 
   sb->count = fread(sb->items, sizeof(char), m, f);
 
+  if (ferror(f)) {
+    printf("ERROR: Could not read file: %s\n", filepath);
+    return false;
+  }
+
   fclose(f);
 
   SB_APPEND_NULL(sb);
+
+  return true;
+}
+
+
+// TODO: Use StringView
+bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
+{
+  const char *line_start = line;
+  size_t rest = line_length;
+
+// TODO: Report line number
+#define NEXT(line, rest)                        \
+  do {                                          \
+    (rest)--;                                   \
+    if ((rest) == 0) {                          \
+      printf("ERROR: broken line was found\n"); \
+      return false;                             \
+    }                                           \
+    (line)++;                                   \
+  } while (0)
+
+
+  // expect `[`
+  if (*line != '[') {
+    printf("ERROR: expect `[` but got %c\n", *line);
+    return false;
+  }
+
+  NEXT(line, rest);
+
+  // skip ` ` or ``
+  while (*line == ' ') NEXT(line, rest);
+
+  // expect `]`
+  if (*line != ']') {
+    printf("ERROR: expect `]` but got %c\n", *line);
+    return false;
+  }
+  NEXT(line, rest);
+
+  // expect `:`
+  if (*line != ':') {
+    printf("ERROR: expect `:` but got %c\n", *line);
+    return false;
+  }
+  NEXT(line, rest);
+
+  // expect ` ` or ``
+  while (*line == ' ') NEXT(line, rest);
+
+  // the rest of chars are considered as a name of todo
+  todo->id = 0;
+
+  const size_t name_length = rest+1;
+  if (name_length >= DESC_CAPACITY) {
+    printf("ERROR: name length has more than %d characters", DESC_CAPACITY);
+    return false;
+  }
+  memcpy(todo->desc, line, name_length);
+  todo->desc[name_length] = '\0';
+
+  return true;
+}
+
+bool read_todos_from_file(const char *filepath, struct Todos *todos)
+{
+  struct StringBuilder sb;
+  if (!read_entire_file(filepath, &sb)) return false;
+
+  printf("%s\n", sb.items);
+
+  size_t line_start_offset = 0;
+
+  while (sb.items[line_start_offset] != '\0') {
+    // Find newline character
+    for (size_t i = line_start_offset; i<sb.count; i++) {
+      if (sb.items[i] == '\n') {
+        const size_t line_length = i - line_start_offset;
+
+        struct Todo todo = {0};
+        parse_line_as_todo(sb.items+line_start_offset, line_length, &todo);
+
+        DA_APPEND(todos, todo);
+
+        // Update line_start_offset for next iteration.
+        line_start_offset = i+1;
+      }
+    }
+  }
+
+  printf("count: %zu\n", todos->count);
+
+  for (size_t i=0; i<todos->count; ++i) {
+    printf("DESC-%zu: %s\n", i, todos->items[i].desc);
+  }
 
   return true;
 }
@@ -92,6 +200,11 @@ bool init_yat()
 
 bool add_todo(const char *name)
 {
+  struct Todos todos = {0};
+  if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -163,5 +276,7 @@ int main(int argc, char **argv) {
     usage();
     printf("ERROR: invalid subcommand\n");
   }
+
+  return 0;
 }
 
