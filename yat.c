@@ -92,25 +92,35 @@ bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
 
   // expect `[`
   if (*line != '[') {
-    printf("ERROR: expect `[` but got %c\n", *line);
+    printf("ERROR: `[` was expected but got %c\n", *line);
     return false;
   }
 
   NEXT(line, rest);
 
-  // skip ` ` or ``
-  while (*line == ' ') NEXT(line, rest);
+  // skip ` ` or `x`
+  // consider space-character as not completed and `x` as completed
+  if (*line == ' ') {
+    todo->done = 0;
+  } else if (*line == 'x') {
+    todo->done = 1;
+  } else {
+    printf("ERROR: `[` or `x` were expected but got %c\n", *line);
+    return false;
+  }
+  NEXT(line, rest);
+  
 
   // expect `]`
   if (*line != ']') {
-    printf("ERROR: expect `]` but got %c\n", *line);
+    printf("ERROR: `]` was expected but got %c\n", *line);
     return false;
   }
   NEXT(line, rest);
 
   // expect `:`
   if (*line != ':') {
-    printf("ERROR: expect `:` but got %c\n", *line);
+    printf("ERROR: `:` was expected but got %c\n", *line);
     return false;
   }
   NEXT(line, rest);
@@ -128,6 +138,8 @@ bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
   }
   memcpy(todo->desc, line, name_length);
   todo->desc[name_length] = '\0';
+
+#undef NEXT
 
   return true;
 }
