@@ -40,9 +40,6 @@ void usage()
 
 // ----------| Core Functions |----------
 
-bool read_entire_file(const char *filepath, struct StringBuilder *sb);
-bool parse_todos(struct Todo *todos);
-
 bool read_entire_file(const char *filepath, struct StringBuilder *sb)
 {
   FILE *f = fopen(filepath, "r");
