@@ -179,6 +179,9 @@ void dump_todos(struct Todos todos, bool separator)
   if (separator) printf("--------------------\n");
 }
 
+// ----------| Core Functions End |----------
+
+
 // ----------| Subcommand Functions |----------
 //
 // NOTE: All functions are expecting null-terminated string.
