@@ -145,9 +145,6 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
 {
   struct StringBuilder sb;
   if (!read_entire_file(filepath, &sb)) return false;
-
-  printf("%s\n", sb.items);
-
   size_t line_start_offset = 0;
 
   while (sb.items[line_start_offset] != '\0') {
@@ -173,7 +170,13 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
     printf("DESC-%zu: %s\n", i, todos->items[i].desc);
   }
 
-  return true;
+void dump_todos(struct Todos todos, bool separator)
+{
+  if (separator) printf("--------------------\n")
+  for (size_t i=0; i<todos.count; ++i) {
+    printf("[%c] %s\n", todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
+  }
+  if (separator) printf("--------------------\n");
 }
 
 // ----------| Subcommand Functions |----------
@@ -213,6 +216,8 @@ bool add_todo(const char *name)
   if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
     return false;
   }
+
+  dump_todos(todos);
 
   return true;
 }
