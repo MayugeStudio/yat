@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SB_IMPLEMENTATION
 #include "sb.h"
 
 #define YAT_TODO_FILE "./todos.yat"
@@ -143,7 +144,7 @@ bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
 
 bool read_todos_from_file(const char *filepath, struct Todos *todos)
 {
-  struct StringBuilder sb;
+  struct StringBuilder sb = {0};
   if (!read_entire_file(filepath, &sb)) return false;
   size_t line_start_offset = 0;
 
@@ -164,11 +165,39 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
     }
   }
 
-  printf("count: %zu\n", todos->count);
+  return true;
+}
 
-  for (size_t i=0; i<todos->count; ++i) {
-    printf("DESC-%zu: %s\n", i, todos->items[i].desc);
+bool write_todos_to_file(const char *filepath, struct Todos todos)
+{
+  struct StringBuilder out = {0};
+
+  for (size_t i=0; i<todos.count; ++i) {
+    struct Todo todo = todos.items[i];
+    char done = todo.done ? 'x' : ' ';
+    sb_appendf(&sb, "[%c] %s\n", done, todo.desc);
   }
+
+  // Insert new line at the end of file
+  DA_APPEND(&sb, '\n');
+
+  FILE *f = fopen(filepath, "w");
+  if (!f) {
+    printf("ERROR: Could not open file: %s\n", filepath);
+    return false;
+  }
+
+  int written_count = fwrite(sb.items, sizeof(*sb.items), sb.count, f);
+
+  if (written_count != sb.count) {
+    printf("ERROR: Could not write file: %s\n", filepath);
+  }
+
+  fclose(f);
+
+  return true;
+}
+
 
 void dump_todos(struct Todos todos, bool separator)
 {
@@ -219,7 +248,6 @@ bool add_todo(const char *name)
   if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
     return false;
   }
-
   dump_todos(todos);
 
   return true;
