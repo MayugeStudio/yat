@@ -208,9 +208,9 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
 
 void dump_todos(struct Todos todos, bool separator)
 {
-  if (separator) printf("--------------------\n")
+  if (separator) printf("--------------------\n");
   for (size_t i=0; i<todos.count; ++i) {
-    printf("[%c] %s\n", todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
+    printf("[%c]: %s\n", todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
   }
   if (separator) printf("--------------------\n");
 }
