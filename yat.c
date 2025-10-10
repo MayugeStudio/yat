@@ -69,75 +69,77 @@ bool read_entire_file(const char *filepath, struct StringBuilder *sb)
   return true;
 }
 
-
-// TODO: Use StringView
-bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo, int line_num)
-{
-  const char *line_start = line;
-  size_t rest_chars = line_length;
-
-// TODO: Report line number
-#define NEXT(line, rest_chars)                                 \
+#define NEXT(line, row, col)                                   \
   do {                                                         \
-    (rest_chars)--;                                            \
-    if ((rest_chars) == 0) {                                   \
-      printf("ERROR:%d: broken line was found\n", line_num); \
+    if (*line == '\0') {                                       \
+      printf("ERROR:%d:%d broken line was found\n", row, col); \
       return false;                                            \
     }                                                          \
     (line)++;                                                  \
   } while (0)
 
+// TODO: Use StringView
+bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo, int row)
+{
+  const char *line_start = line;
 
-  // expect `[`
-  if (*line != '[') {
-    printf("ERROR:%d: `[` was expected but got `%c`\n", line_num, *line);
+  char *endptr;
+  // expect numbers
+  long id = strtol(line_start, &endptr, 10);
+  if (endptr == line_start) {
+    printf("ERROR:%d:%d expected number but got `%c`", row, (int)(line-line_start), *line);
     return false;
   }
+  line = endptr;
+  // skip spaces
+  while (*line == ' ') line++;
 
-  NEXT(line, rest_chars);
+  // expect '|'
+  if (*line != '|') {
+    printf("ERROR:%d:%d `|` was expected but got `%c`", row, (int)(line-line_start), *line);
+  }
+  // skip '|'
+  NEXT(line, row, (int)(line-line_start));
 
-  // skip ` ` or `x`
-  // consider space-character as not completed and `x` as completed
-  if (*line == ' ') {
+  // skip spaces after '|'
+  while (*line == ' ') line++;
+
+  // expect `0` or `1`
+  if (*line == '0') {
     todo->done = 0;
-  } else if (*line == 'x') {
+  } else if (*line == '1') {
     todo->done = 1;
   } else {
-    printf("ERROR:%d: `[` or `x` were expected but got `%c`\n", line_num, *line);
+    printf("ERROR:%d:%d `0` or `1` were expected but got `%c`\n", row, (int)(line-line_start), *line);
     return false;
   }
-  NEXT(line, rest_chars);
+  // skip `0` or `1`
+  NEXT(line, row, (int)(line-line_start));
+
+  // skip spaces after '|'
+  while (*line == ' ') line++;
   
-
-  // expect `]`
-  if (*line != ']') {
-    printf("ERROR:%d: `]` was expected but got `%c`\n", line_num, *line);
+  // expect `|`
+  if (*line != '|') {
+    printf("ERROR:%d:%d `|` was expected but got `%c`\n", row, (int)(line-line_start), *line);
     return false;
   }
-  NEXT(line, rest_chars);
+  // skip `|`
+  NEXT(line, row, (int)(line-line_start));
 
-  // expect `:`
-  if (*line != ':') {
-    printf("ERROR:%d: `:` was expected but got `%c`\n", line_num, *line);
-    return false;
-  }
-  NEXT(line, rest_chars);
-
-  // expect ` ` or ``
-  while (*line == ' ') NEXT(line, rest_chars);
+  // skip ` ` if exists
+  while (*line == ' ') NEXT(line, row, (int)(line-line_start));
 
   // the rest of chars are considered as a name of todo
-  todo->id = 0;
+  todo->id = (int)id;
 
-  const size_t name_length = rest_chars+1;
+  const size_t name_length = line_length - (line-line_start);
   if (name_length >= DESC_CAPACITY) {
-    printf("ERROR:%d: name length has more than %d characters", line_num, DESC_CAPACITY);
+    printf("ERROR:%d:%d name length has more than %d characters", row, (int)(line-line_start), DESC_CAPACITY);
     return false;
   }
   memcpy(todo->desc, line, name_length);
-  todo->desc[name_length-1] = '\0';
-
-#undef NEXT
+  todo->desc[name_length] = '\0';
 
   return true;
 }
@@ -147,18 +149,22 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
   struct StringBuilder sb = {0};
   if (!read_entire_file(filepath, &sb)) return false;
   size_t line_start_offset = 0;
-  int line_num = 0;
-
-  // TODO: Split sb.items by newline char and ignore 0 length line. 
+  int row = 1;
 
   while (sb.items[line_start_offset] != '\0') {
     // Find newline character
     for (size_t i = line_start_offset; i<sb.count; i++) {
-      if (sb.items[i] == '\n') {
+      if (i == sb.count || sb.items[i] == '\n') {
         const size_t line_length = i - line_start_offset;
 
+        if (line_length == 0) {
+          line_start_offset = i+1;
+          row += 1;
+          break;
+        }
+
         struct Todo todo = {0};
-        if (!parse_line_as_todo(sb.items+line_start_offset, line_length, &todo, line_num)) {
+        if (!parse_line_as_todo(sb.items+line_start_offset, line_length, &todo, row)) {
           return false;
         }
 
@@ -167,7 +173,7 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
         // Update line_start_offset for next iteration.
         line_start_offset = i+1;
         // Increment line_num
-        line_num += 1;
+        row += 1;
       }
     }
   }
@@ -181,12 +187,9 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
 
   for (size_t i=0; i<todos.count; ++i) {
     struct Todo todo = todos.items[i];
-    char done = todo.done ? 'x' : ' ';
-    sb_appendf(&out, "[%c]: %s\n", done, todo.desc);
+    char done = todo.done ? '0' : '1';
+    sb_appendf(&out, "%d | %c | %s\n", todo.id, done, todo.desc);
   }
-
-  // Insert new line at the end of file
-  DA_APPEND(&out, '\n');
 
   FILE *f = fopen(filepath, "w");
   if (!f) {
@@ -210,23 +213,35 @@ void dump_todos(struct Todos todos, bool separator)
 {
   if (separator) printf("--------------------\n");
   for (size_t i=0; i<todos.count; ++i) {
-    printf("[%c]: %s\n", todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
+    printf("(%03d):[%c]: %s\n", todos.items[i].id, todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
   }
   if (separator) printf("--------------------\n");
 }
 
 // ----------| Core Functions End |----------
 
+// ----------| Utility Functions |----------
+
+int get_next_id(struct Todos todos)
+{
+  int current_max_id = -1;
+  if (todos.count == 0) {
+    return 1; // Default todo id
+  }
+
+  for (int i=0; i<todos.count; ++i) {
+    if (current_max_id < todos.items[i].id) {
+      current_max_id = todos.items[i].id;
+    }
+  }
+
+  return current_max_id + 1; // increment current_max_id
+}
+
+// ----------| Utility Functions End |----------
+
 
 // ----------| Subcommand Functions |----------
-//
-// NOTE: All functions are expecting null-terminated string.
-bool init_yat();
-bool add_todo(const char *name);
-bool close_todo(const char *id);
-bool delete_todo(const char *id);
-bool list_todos();
-
 
 bool init_yat()
 {
@@ -261,10 +276,12 @@ bool add_todo(const char *name)
   if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
     return false;
   }
+
+  int next_id = get_next_id(todos);
   
   // Construct new todo struct
   struct Todo todo = {
-    .id=0,                   // id
+    .id=next_id,             // id
     .done=0,                 // done
   };
   memcpy(todo.desc, name, name_length);
@@ -295,9 +312,9 @@ bool delete_todo(const char *id)
 
 bool list_todos()
 {
-  struct StringBuilder sb;
-  if (!read_entire_file(YAT_TODO_FILE, &sb)) { return false; }
-  printf("%s\n", sb.items);
+  struct Todos todos = {0};
+  if (!read_todos_from_file(YAT_TODO_FILE, &todos)) return false;
+  dump_todos(todos, false);
   return true;
 }
 
