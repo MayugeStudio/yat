@@ -251,11 +251,34 @@ bool init_yat()
 
 bool add_todo(const char *name)
 {
+  size_t name_length = strlen(name);
+  if (name_length >= DESC_CAPACITY) {
+    printf("ERROR: name length has more than %d characters", DESC_CAPACITY);
+  }
+
+
   struct Todos todos = {0};
   if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
     return false;
   }
-  dump_todos(todos);
+  
+  // Construct new todo struct
+  struct Todo todo = {
+    .id=0,                   // id
+    .done=0,                 // done
+  };
+  memcpy(todo.desc, name, name_length);
+  todo.desc[name_length] = '\0';
+
+  // Append a todo into existing todos
+  DA_APPEND(&todos, todo);
+  if (!write_todos_to_file(YAT_TODO_FILE, todos)) {
+    return false;
+  }
+
+  dump_todos(todos, true);
+
+  printf("Successfully added todo to "YAT_TODO_FILE"\n");
 
   return true;
 }
