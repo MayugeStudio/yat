@@ -71,30 +71,30 @@ bool read_entire_file(const char *filepath, struct StringBuilder *sb)
 
 
 // TODO: Use StringView
-bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
+bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo, int line_num)
 {
   const char *line_start = line;
-  size_t rest = line_length;
+  size_t rest_chars = line_length;
 
 // TODO: Report line number
-#define NEXT(line, rest)                        \
-  do {                                          \
-    (rest)--;                                   \
-    if ((rest) == 0) {                          \
-      printf("ERROR: broken line was found\n"); \
-      return false;                             \
-    }                                           \
-    (line)++;                                   \
+#define NEXT(line, rest_chars)                                 \
+  do {                                                         \
+    (rest_chars)--;                                            \
+    if ((rest_chars) == 0) {                                   \
+      printf("ERROR:%d: broken line was found\n", line_num); \
+      return false;                                            \
+    }                                                          \
+    (line)++;                                                  \
   } while (0)
 
 
   // expect `[`
   if (*line != '[') {
-    printf("ERROR: `[` was expected but got %c\n", *line);
+    printf("ERROR:%d: `[` was expected but got `%c`\n", line_num, *line);
     return false;
   }
 
-  NEXT(line, rest);
+  NEXT(line, rest_chars);
 
   // skip ` ` or `x`
   // consider space-character as not completed and `x` as completed
@@ -103,39 +103,39 @@ bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo)
   } else if (*line == 'x') {
     todo->done = 1;
   } else {
-    printf("ERROR: `[` or `x` were expected but got %c\n", *line);
+    printf("ERROR:%d: `[` or `x` were expected but got `%c`\n", line_num, *line);
     return false;
   }
-  NEXT(line, rest);
+  NEXT(line, rest_chars);
   
 
   // expect `]`
   if (*line != ']') {
-    printf("ERROR: `]` was expected but got %c\n", *line);
+    printf("ERROR:%d: `]` was expected but got `%c`\n", line_num, *line);
     return false;
   }
-  NEXT(line, rest);
+  NEXT(line, rest_chars);
 
   // expect `:`
   if (*line != ':') {
-    printf("ERROR: `:` was expected but got %c\n", *line);
+    printf("ERROR:%d: `:` was expected but got `%c`\n", line_num, *line);
     return false;
   }
-  NEXT(line, rest);
+  NEXT(line, rest_chars);
 
   // expect ` ` or ``
-  while (*line == ' ') NEXT(line, rest);
+  while (*line == ' ') NEXT(line, rest_chars);
 
   // the rest of chars are considered as a name of todo
   todo->id = 0;
 
-  const size_t name_length = rest+1;
+  const size_t name_length = rest_chars+1;
   if (name_length >= DESC_CAPACITY) {
-    printf("ERROR: name length has more than %d characters", DESC_CAPACITY);
+    printf("ERROR:%d: name length has more than %d characters", line_num, DESC_CAPACITY);
     return false;
   }
   memcpy(todo->desc, line, name_length);
-  todo->desc[name_length] = '\0';
+  todo->desc[name_length-1] = '\0';
 
 #undef NEXT
 
@@ -147,6 +147,9 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
   struct StringBuilder sb = {0};
   if (!read_entire_file(filepath, &sb)) return false;
   size_t line_start_offset = 0;
+  int line_num = 0;
+
+  // TODO: Split sb.items by newline char and ignore 0 length line. 
 
   while (sb.items[line_start_offset] != '\0') {
     // Find newline character
@@ -155,12 +158,16 @@ bool read_todos_from_file(const char *filepath, struct Todos *todos)
         const size_t line_length = i - line_start_offset;
 
         struct Todo todo = {0};
-        parse_line_as_todo(sb.items+line_start_offset, line_length, &todo);
+        if (!parse_line_as_todo(sb.items+line_start_offset, line_length, &todo, line_num)) {
+          return false;
+        }
 
         DA_APPEND(todos, todo);
 
         // Update line_start_offset for next iteration.
         line_start_offset = i+1;
+        // Increment line_num
+        line_num += 1;
       }
     }
   }
