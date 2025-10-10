@@ -182,11 +182,11 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
   for (size_t i=0; i<todos.count; ++i) {
     struct Todo todo = todos.items[i];
     char done = todo.done ? 'x' : ' ';
-    sb_appendf(&sb, "[%c] %s\n", done, todo.desc);
+    sb_appendf(&out, "[%c]: %s\n", done, todo.desc);
   }
 
   // Insert new line at the end of file
-  DA_APPEND(&sb, '\n');
+  DA_APPEND(&out, '\n');
 
   FILE *f = fopen(filepath, "w");
   if (!f) {
@@ -194,9 +194,9 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
     return false;
   }
 
-  int written_count = fwrite(sb.items, sizeof(*sb.items), sb.count, f);
+  int written_count = fwrite(out.items, sizeof(*out.items), out.count, f);
 
-  if (written_count != sb.count) {
+  if (written_count != out.count) {
     printf("ERROR: Could not write file: %s\n", filepath);
   }
 
