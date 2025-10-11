@@ -213,7 +213,7 @@ void dump_todos(struct Todos todos, bool separator)
 {
   if (separator) printf("--------------------\n");
   for (size_t i=0; i<todos.count; ++i) {
-    printf("(%03d):[%c]: %s\n", todos.items[i].id, todos.items[i].done ? 'x' : ' ',todos.items[i].desc);
+    printf("[%c]: %s(#%03d)\n", todos.items[i].done ? 'x' : ' ', todos.items[i].desc, todos.items[i].id);
   }
   if (separator) printf("--------------------\n");
 }
