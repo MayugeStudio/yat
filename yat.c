@@ -331,12 +331,12 @@ bool close_todo(int id)
   // Close the todo
   todos.items[index].done = 1;
 
-  // Apply change by write updated todos to file
+  // Apply change by writing updated todos to file
   if (!write_todos_to_file(YAT_TODO_FILE, todos)) {
     return false;
   }
 
-  printf("Successfully close todo(#%03d)\n", todos.items[index].id);
+  printf("Successfully closed todo(#%03d)\n", todos.items[index].id);
 
   return true;
 }
@@ -362,12 +362,12 @@ bool delete_todo(int id)
   }
   todos.count -= 1;
 
-  // Apply change by write updated todos to file
+  // Apply change by writing updated todos to file
   if (!write_todos_to_file(YAT_TODO_FILE, todos)) {
     return false;
   }
 
-  printf("Successfully delete todo(#%03d)\n", id);
+  printf("Successfully deleted todo(#%03d)\n", id);
 
   return true;
 }
