@@ -312,12 +312,12 @@ bool add_todo(const char *name)
   return true;
 }
 
-bool close_todo(const char *id)
+bool close_todo(int id)
 {
   return true;
 }
 
-bool delete_todo(const char *id)
+bool delete_todo(int id)
 {
   return true;
 }
@@ -352,17 +352,29 @@ int main(int argc, char **argv) {
     }
 
     const char *todo_name = SHIFT(argc, argv);
+    // Do application level procedure
     if (!add_todo(todo_name)) return -1;
 
   } else if (strcmp(command_name, "close") == 0) {
     if (argc == 0) {
       usage();
-      printf("ERROR: `close` expected the name of id.");
+      printf("ERROR: `close` expected the id of the todo.");
       return -1;
     }
 
     const char *todo_id = SHIFT(argc, argv);
-    if (!close_todo(todo_id)) return -1;
+
+    // Convert char* to long
+    char *end;
+    long todo_id_long = strtol(todo_id, &end, 10);
+    if (*end != '\0') {
+      printf("ERROR: invalid integer `%s`\n", todo_id);
+      return -1;
+    }
+
+    // Do application level procedure
+    // TODO: Perform range checking when converting a todo ID from long to int.
+    if (!close_todo((int)todo_id_long)) return -1;
 
   } else if (strcmp(command_name, "delete") == 0) {
     if (argc == 0) {
@@ -372,9 +384,21 @@ int main(int argc, char **argv) {
     }
 
     const char *todo_id = SHIFT(argc, argv);
-    if (!delete_todo(todo_id)) return -1;
+
+    // Convert char* to long
+    char *end;
+    long todo_id_long = strtol(todo_id, &end, 10);
+    if (*end != '\0') {
+      printf("ERROR: invalid integer `%s`\n", todo_id);
+      return -1;
+    }
+
+    // Do application level procedure
+    // TODO: Perform range checking when converting a todo ID from long to int.
+    if (!delete_todo((int)todo_id_long)) return -1;
 
   } else if (strcmp(command_name, "list") == 0) {
+    // Do application level procedure
     if (!list_todos()) return -1;
   } else {
     usage();
