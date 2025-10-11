@@ -343,6 +343,32 @@ bool close_todo(int id)
 
 bool delete_todo(int id)
 {
+  // Read todos from file.
+  struct Todos todos = {0};
+  if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
+    return false;
+  }
+
+  // Find todo with specified id
+  int index;
+  if (!get_todo_index_by_id(todos, id, &index)) {
+    printf("ERROR: todo with id %d not found\n", id);
+    return false;
+  }
+
+  // Delete todo with specified id
+  for (int i=index; i+1<todos.count; ++i) {
+    todos.items[i] = todos.items[i+1];
+  }
+  todos.count -= 1;
+
+  // Apply change by write updated todos to file
+  if (!write_todos_to_file(YAT_TODO_FILE, todos)) {
+    return false;
+  }
+
+  printf("Successfully delete todo(#%03d)\n", id);
+
   return true;
 }
 
