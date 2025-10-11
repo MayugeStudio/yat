@@ -187,7 +187,7 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
 
   for (size_t i=0; i<todos.count; ++i) {
     struct Todo todo = todos.items[i];
-    char done = todo.done ? '0' : '1';
+    char done = todo.done ? '1' : '0';
     sb_appendf(&out, "%d | %c | %s\n", todo.id, done, todo.desc);
   }
 
