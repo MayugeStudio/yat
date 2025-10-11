@@ -238,6 +238,18 @@ int get_next_id(struct Todos todos)
   return current_max_id + 1; // increment current_max_id
 }
 
+bool get_todo_index_by_id(struct Todos todos, int id, int *out)
+{
+  for (int i=0; i<todos.count; ++i) {
+    if (todos.items[i].id == id) {
+      *out = i;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // ----------| Utility Functions End |----------
 
 
