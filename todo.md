@@ -1,7 +1,5 @@
 - [x]: Command init todo file
-- [ ]: Command list
-- [ ]: Command add TODO
-- [ ]: Command complete
-
-- [ ]: What kind of format should I use?
+- [x]: Command list
+- [x]: Command add TODO
+- [x]: Command complete
 
