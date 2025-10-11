@@ -314,6 +314,30 @@ bool add_todo(const char *name)
 
 bool close_todo(int id)
 {
+  // Read todos from file.
+  struct Todos todos = {0};
+  if (!read_todos_from_file(YAT_TODO_FILE, &todos)) {
+    return false;
+  }
+
+  // Find todo with specified id
+  int index;
+  if (!get_todo_index_by_id(todos, id, &index)) {
+    printf("ERROR: todo with id %d not found\n", id);
+    return false;
+  }
+
+
+  // Close the todo
+  todos.items[index].done = 1;
+
+  // Apply change by write updated todos to file
+  if (!write_todos_to_file(YAT_TODO_FILE, todos)) {
+    return false;
+  }
+
+  printf("Successfully close todo(#%03d)\n", todos.items[index].id);
+
   return true;
 }
 
