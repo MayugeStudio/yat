@@ -1,3 +1,14 @@
+// Yat (Yet Another Todo app)
+//
+// This program provide user with 4 kind of commands.
+//
+// 1. init:   Initialize yat
+// 2. add:    Add todo
+// 3. close:  Mark todo as complete
+// 4. delete: Delete todo
+// 5. list:   Show the list of todos
+//
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,6 +21,14 @@
 #define YAT_TODO_FILE "./todos.yat"
 #define DESC_CAPACITY 256
 
+#define NEXT(line, row, col)                                   \
+  do {                                                         \
+    if (*line == '\0') {                                       \
+      printf("ERROR:%d:%d broken line was found\n", row, col); \
+      return false;                                            \
+    }                                                          \
+    (line)++;                                                  \
+  } while (0)
 
 struct Todo {
   int id;
@@ -68,15 +87,6 @@ bool read_entire_file(const char *filepath, struct StringBuilder *sb)
 
   return true;
 }
-
-#define NEXT(line, row, col)                                   \
-  do {                                                         \
-    if (*line == '\0') {                                       \
-      printf("ERROR:%d:%d broken line was found\n", row, col); \
-      return false;                                            \
-    }                                                          \
-    (line)++;                                                  \
-  } while (0)
 
 // TODO: Use StringView
 bool parse_line_as_todo(char *line, const size_t line_length, struct Todo *todo, int row)
