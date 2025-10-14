@@ -1,5 +1,3 @@
-all: yat da_test
-
 yat: yat.c
 	gcc -o yat yat.c -I./thirdparty -ggdb
 
