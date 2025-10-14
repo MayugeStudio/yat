@@ -48,11 +48,11 @@ void usage()
   printf("\n");
   printf("SUBCOMMANDS:\n");
   printf("\n");
-  printf("    yat    <target-dir> - Initialize a specified directory with empty todos\n");
-  printf("    add    <todo-name>  - Add todo\n");
-  printf("    close  <todo-id>    - Close todo\n");
-  printf("    delete <todo-id>    - Delete todo\n");
-  printf("    list                - Show all todos\n");
+  printf("    init   <target-dir>        - Initialize a specified directory with empty todos\n");
+  printf("    add    <todo-description>  - Add todo\n");
+  printf("    close  <todo-id>           - Close todo with the specified id\n");
+  printf("    delete <todo-id>           - Delete todo with the specified id\n");
+  printf("    list                       - Show all todos\n");
   printf("\n");
 }
 
