@@ -18,7 +18,7 @@
 #define SB_IMPLEMENTATION
 #include "sb.h"
 
-#define YAT_TODO_FILE "YAT"
+#define YAT_TODO_FILE "YATS"
 #define DESC_CAPACITY 256
 
 #define NEXT(line, row, col)                                   \
