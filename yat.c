@@ -404,6 +404,9 @@ int main(int argc, char **argv) {
   if (strcmp(command_name, "init") == 0) {
     if (!init_yat()) return -1;
 
+  } else if (strcmp(command_name, "help") == 0) {
+    usage();
+    return 0;
   } else if (strcmp(command_name, "add") == 0) {
     if (argc == 0) {
       usage();
