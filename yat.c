@@ -3,10 +3,11 @@
 // This program provide user with 4 kind of commands.
 //
 // 1. init:   Initialize yat
-// 2. add:    Add todo
-// 3. close:  Mark todo as complete
-// 4. delete: Delete todo
-// 5. list:   Show the list of todos
+// 2. help:   Show help messages
+// 3. add:    Add todo
+// 4. close:  Mark todo as complete
+// 5. delete: Delete todo
+// 6. list:   Show the list of todos
 //
 
 #include <assert.h>
@@ -404,6 +405,9 @@ int main(int argc, char **argv) {
   if (strcmp(command_name, "init") == 0) {
     if (!init_yat()) return -1;
 
+  } else if (strcmp(command_name, "help") == 0) {
+    usage();
+    return 0;
   } else if (strcmp(command_name, "add") == 0) {
     if (argc == 0) {
       usage();
