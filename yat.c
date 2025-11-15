@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
 #define SB_IMPLEMENTATION
@@ -73,7 +74,7 @@ bool read_entire_file(const char *filepath, struct StringBuilder *sb)
   long m = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  DA_RESERVE(sb, m);
+  DA_RESERVE(sb, (size_t)m);
 
   sb->count = fread(sb->items, sizeof(char), m, f);
 
@@ -210,7 +211,7 @@ bool write_todos_to_file(const char *filepath, struct Todos todos)
 
   int written_count = fwrite(out.items, sizeof(*out.items), out.count, f);
 
-  if (written_count != out.count) {
+  if ((size_t)written_count != out.count) {
     printf("ERROR: Could not write file: %s\n", filepath);
   }
 
@@ -240,7 +241,7 @@ int get_next_id(struct Todos todos)
     return 1; // Default todo id
   }
 
-  for (int i=0; i<todos.count; ++i) {
+  for (size_t i=0; i<todos.count; ++i) {
     if (current_max_id < todos.items[i].id) {
       current_max_id = todos.items[i].id;
     }
@@ -251,7 +252,7 @@ int get_next_id(struct Todos todos)
 
 bool get_todo_index_by_id(struct Todos todos, int id, int *out)
 {
-  for (int i=0; i<todos.count; ++i) {
+  for (size_t i=0; i<todos.count; ++i) {
     if (todos.items[i].id == id) {
       *out = i;
       return true;
@@ -368,7 +369,7 @@ bool delete_todo(int id)
   }
 
   // Delete todo with specified id
-  for (int i=index; i+1<todos.count; ++i) {
+  for (size_t i=index; i+1<todos.count; ++i) {
     todos.items[i] = todos.items[i+1];
   }
   todos.count -= 1;
@@ -391,8 +392,22 @@ bool list_todos()
   return true;
 }
 
+bool timer(int input_seconds)
+{
+  int total = input_seconds;
+  for (int t=total; t>0; --t) {
+    printf("\r%02d:%02d", t/60, t%60);
+    fflush(stdout);
+    sleep(1);
+  }
+
+  printf("\nDone\n");
+  return 0;
+}
+
 int main(int argc, char **argv) {
   const char *program_name = SHIFT(argc, argv);
+  (void)program_name;
 
   if (argc == 0) {
     usage();
@@ -464,6 +479,22 @@ int main(int argc, char **argv) {
   } else if (strcmp(command_name, "list") == 0) {
     // Do application level procedure
     if (!list_todos()) return -1;
+  } else if (strcmp(command_name, "timer") == 0){
+    if (argc == 0) {
+      usage();
+      printf("ERROR: `timer` expected timer duration in seconds");
+      return -1;
+    }
+    const char *timer_seconds = SHIFT(argc, argv);
+
+    // Convert char* to long
+    char *end;
+    long timer_seconds_long = strtol(timer_seconds, &end, 10);
+    if (*end != '\0') {
+      printf("ERROR: invalid integer `%s`\n", timer_seconds);
+      return -1;
+    }
+    if (!timer((int)timer_seconds_long)) return -1;
   } else {
     usage();
     printf("ERROR: invalid subcommand\n");
