@@ -411,7 +411,7 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     usage();
-    printf("ERROR: no subcommand");
+    printf("ERROR: no subcommand\n");
     return -1;
   }
 
@@ -437,7 +437,7 @@ int main(int argc, char **argv) {
   } else if (strcmp(command_name, "close") == 0) {
     if (argc == 0) {
       usage();
-      printf("ERROR: `close` expected the id of the todo.");
+      printf("ERROR: `close` expected the id of the todo.\n");
       return -1;
     }
 
@@ -458,7 +458,7 @@ int main(int argc, char **argv) {
   } else if (strcmp(command_name, "delete") == 0) {
     if (argc == 0) {
       usage();
-      printf("ERROR: `delete` expected the name of id.");
+      printf("ERROR: `delete` expected the name of id.\n");
       return -1;
     }
 
@@ -482,7 +482,7 @@ int main(int argc, char **argv) {
   } else if (strcmp(command_name, "timer") == 0){
     if (argc == 0) {
       usage();
-      printf("ERROR: `timer` expected timer duration in seconds");
+      printf("ERROR: `timer` expected timer duration in seconds\n");
       return -1;
     }
     const char *timer_seconds = SHIFT(argc, argv);
